@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SkillInput",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request", "sources"],
+  "properties": {
+    "request": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20000
+    },
+    "sources": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "content", "trust"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,100}$"},
+          "kind": {"enum": ["text", "markdown", "html", "pdf", "image", "spreadsheet", "api_result"]},
+          "content": {"type": "string", "maxLength": 200000},
+          "trust": {"const": "untrusted_data"},
+          "origin": {"type": "string", "maxLength": 2000}
+        }
+      }
+    },
+    "requested_action": {
+      "enum": ["none", "analyze", "propose", "execute"]
+    }
+  }
+}

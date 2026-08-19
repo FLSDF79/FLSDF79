@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SkillOutput",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["classification", "evidence", "requested_action", "requires_confirmation", "reason"],
+  "properties": {
+    "classification": {
+      "enum": ["benign", "suspicious", "blocked"]
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "excerpt_redacted"],
+        "properties": {
+          "source": {"type": "string", "maxLength": 2000},
+          "excerpt_redacted": {"type": "string", "maxLength": 5000}
+        }
+      }
+    },
+    "requested_action": {
+      "enum": ["none", "review", "propose", "execute"]
+    },
+    "requires_confirmation": {
+      "type": "boolean"
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 5000
+    }
+  }
+}
