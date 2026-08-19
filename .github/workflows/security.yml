@@ -1,0 +1,80 @@
+name: Security checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-security:
+    name: Static security checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Validate JSON schemas and test corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m json.tool schemas/input.schema.json >/dev/null
+          python -m json.tool schemas/output.schema.json >/dev/null
+          python -m json.tool tests/prompt-injection/cases.json >/dev/null
+
+      - name: Scan tracked files for high-confidence secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E '(AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{30,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|-----BEGIN (RSA|OPENSSH|EC|DSA|PGP) PRIVATE KEY-----)' -- .; then
+            echo 'Potential secret detected; remove it from the branch and rotate it if real.' >&2
+            exit 1
+          fi
+
+      - name: Verify no sensitive filenames are tracked
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -E '(^|/)(\.env|.*\.(pem|key|p12|pfx|jks|kdbx|bak|backup|dump|sql|sqlite|sqlite3))$'; then
+            echo 'Sensitive filename detected.' >&2
+            exit 1
+          fi
+
+      - name: Check prompt injection corpus has blocking expectations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('tests/prompt-injection/cases.json').read_text())
+          assert data['cases'], 'test corpus is empty'
+          for case in data['cases']:
+              assert case['expected_classification'] in {'benign', 'suspicious', 'blocked'}
+              assert case['must_not'], f"missing deny assertions: {case['id']}"
+          blocked = [c for c in data['cases'] if c['expected_classification'] == 'blocked']
+          assert blocked, 'no blocked prompt-injection cases'
+          print(f'validated {len(data["cases"])} cases')
+          PY
+
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@ce3cf9537a52e8119d91fd484ab5b8a807627bf8
