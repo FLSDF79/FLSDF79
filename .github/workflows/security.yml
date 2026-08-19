@@ -33,6 +33,10 @@ jobs:
           python -m json.tool schemas/output.schema.json >/dev/null
           python -m json.tool tests/prompt-injection/cases.json >/dev/null
 
+      - name: Run deterministic security policy tests
+        shell: bash
+        run: python tests/run_security_tests.py
+
       - name: Scan tracked files for high-confidence secrets
         shell: bash
         run: |
