@@ -1,35 +1,58 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "SkillOutput",
+  "title": "SecurityAuditOutput",
   "type": "object",
   "additionalProperties": false,
-  "required": ["classification", "evidence", "requested_action", "requires_confirmation", "reason"],
+  "required": ["classification", "scope", "findings", "evidence", "requested_action", "requires_confirmation", "reason", "limitations"],
   "properties": {
-    "classification": {
-      "enum": ["benign", "suspicious", "blocked"]
+    "classification": {"enum": ["benign", "suspicious", "blocked"]},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "authorization", "read_only_initial_scan"],
+      "properties": {
+        "target": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "authorization": {"enum": ["user_confirmed", "not_confirmed", "unknown"]},
+        "read_only_initial_scan": {"type": "boolean"}
+      }
     },
-    "evidence": {
+    "findings": {
       "type": "array",
-      "maxItems": 50,
+      "maxItems": 100,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["source", "excerpt_redacted"],
+        "required": ["id", "category", "severity", "confidence", "status", "impact", "remediation"],
         "properties": {
-          "source": {"type": "string", "maxLength": 2000},
-          "excerpt_redacted": {"type": "string", "maxLength": 5000}
+          "id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,100}$"},
+          "category": {"enum": ["secret", "history", "backup", "dependency", "workflow", "permission", "prompt_injection", "exfiltration", "privacy", "other"]},
+          "severity": {"enum": ["critical", "high", "medium", "low", "informational"]},
+          "confidence": {"enum": ["confirmed", "probable", "suspected", "not_assessed"]},
+          "status": {"enum": ["open", "mitigated", "accepted_risk", "false_positive"]},
+          "location": {"type": "string", "maxLength": 2000},
+          "impact": {"type": "string", "maxLength": 3000},
+          "remediation": {"type": "string", "maxLength": 5000},
+          "revalidation": {"type": "string", "maxLength": 3000}
         }
       }
     },
-    "requested_action": {
-      "enum": ["none", "review", "propose", "execute"]
+    "evidence": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "excerpt_redacted", "provenance"],
+        "properties": {
+          "source": {"type": "string", "maxLength": 2000},
+          "excerpt_redacted": {"type": "string", "maxLength": 5000},
+          "provenance": {"enum": ["repository", "git_history", "github_configuration", "user_input", "tool_output", "external_source"]}
+        }
+      }
     },
-    "requires_confirmation": {
-      "type": "boolean"
-    },
-    "reason": {
-      "type": "string",
-      "maxLength": 5000
-    }
+    "requested_action": {"enum": ["none", "review", "propose", "execute"]},
+    "requires_confirmation": {"type": "boolean"},
+    "reason": {"type": "string", "maxLength": 5000},
+    "limitations": {"type": "array", "maxItems": 30, "items": {"type": "string", "maxLength": 1000}}
   }
 }
