@@ -1,0 +1,41 @@
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.kdbx
+
+# Dados e backups
+*.bak
+*.backup
+*.dump
+*.sql
+*.sqlite
+*.sqlite3
+backup/
+backups/
+dumps/
+
+# Artefatos locais e ferramentas
+.DS_Store
+.vscode/
+.idea/
+.cache/
+.tmp/
+tmp/
+coverage/
+dist/
+build/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Logs e relatórios potencialmente sensíveis
+*.log
+reports/private/
+evidence/private/
