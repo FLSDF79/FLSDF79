@@ -1,0 +1,10 @@
+# Revisão obrigatória do proprietário do repositório
+* @FLSDF79
+
+# Áreas de maior risco
+/.github/ @FLSDF79
+/AGENTS.md @FLSDF79
+/SECURITY.md @FLSDF79
+/THREAT-MODEL.md @FLSDF79
+/schemas/ @FLSDF79
+/tests/ @FLSDF79
